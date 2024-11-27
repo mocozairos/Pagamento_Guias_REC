@@ -211,7 +211,7 @@ if gerar_mapa and data_inicial and data_final:
 
     df_escalas_group.loc[df_escalas_group['Idioma']=='', 'Valor Final'] = df_escalas_group['Valor']
 
-    df_escalas_group.loc[df_escalas_group['Motorista']==df_escalas_group['Guia'], ['Motoguia', 'Valor']] = ['X', 250]
+    df_escalas_group.loc[df_escalas_group['Motorista']==df_escalas_group['Guia'], ['Motoguia', 'Valor Final']] = ['X', 250]
 
     df_escalas_group['Valor Final'] = df_escalas_group['Valor Final'] + df_escalas_group['Barco Carneiros']
 
@@ -247,7 +247,7 @@ if 'df_pag_final' in st.session_state:
 
         with row2_1[0]:
 
-            total_a_pagar = df_pag_guia['Valor'].sum()
+            total_a_pagar = df_pag_guia['Valor Final'].sum()
 
             st.subheader(f'Valor Total: R${int(total_a_pagar)}')
 
@@ -255,11 +255,11 @@ if 'df_pag_final' in st.session_state:
 
         df_pag_guia['Data da Escala'] = df_pag_guia['Data da Escala'].dt.strftime('%d/%m/%Y')
 
-        soma_servicos = df_pag_guia['Valor'].sum()
+        soma_servicos = df_pag_guia['Valor Final'].sum()
 
         soma_servicos = format_currency(soma_servicos, 'BRL', locale='pt_BR')
 
-        for item in ['Valor']:
+        for item in ['Valor Final', 'Barco Carneiros']:
 
             df_pag_guia[item] = df_pag_guia[item].apply(lambda x: format_currency(x, 'BRL', locale='pt_BR'))
 
