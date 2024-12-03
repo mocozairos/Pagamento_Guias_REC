@@ -329,8 +329,6 @@ if not 'df_escalas' in st.session_state:
 
 st.title('Mapa de Pagamento - Guias')
 
-st.title('Mapa de Pagamento - Guias')
-
 st.divider()
 
 row1 = st.columns(2)
