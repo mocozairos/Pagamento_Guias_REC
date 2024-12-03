@@ -428,37 +428,6 @@ if 'df_pag_final' in st.session_state:
 
         st.session_state.html_content = html_content
 
-if 'html_content' in st.session_state:
-
-    if guia:
-
-        with row2_1[2]:
-
-            enviar_informes = st.button(f'Enviar Informes | {guia}')
-
-        if enviar_informes:
-
-            puxar_telefones()
-
-            telefone_guia = verificar_guia_sem_telefone('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', guia, st.session_state.df_telefones['Guias'].unique().tolist())
-
-            webhook_thiago = "https://conexao.multiatend.com.br/webhook/pagamentoluckrecife"
-            
-            payload = {"informe_html": st.session_state.html_content, 
-                       "telefone": telefone_guia}
-            
-            response = requests.post(webhook_thiago, json=payload)
-                
-            if response.status_code == 200:
-                
-                st.success(f"Mapas de Pagamento enviados com sucesso!")
-                
-            else:
-                
-                st.error(f"Erro. Favor contactar o suporte")
-
-                st.error(f"{response}")
-
     else:
 
         row2_1 = st.columns(4)
@@ -520,3 +489,32 @@ if 'html_content' in st.session_state:
                     st.error(f"Erro. Favor contactar o suporte")
 
                     st.error(f"{response}")
+
+if 'html_content' in st.session_state and guia:
+
+    with row2_1[2]:
+
+        enviar_informes = st.button(f'Enviar Informes | {guia}')
+
+    if enviar_informes:
+
+        puxar_telefones()
+
+        telefone_guia = verificar_guia_sem_telefone('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', guia, st.session_state.df_telefones['Guias'].unique().tolist())
+
+        webhook_thiago = "https://conexao.multiatend.com.br/webhook/pagamentoluckrecife"
+        
+        payload = {"informe_html": st.session_state.html_content, 
+                    "telefone": telefone_guia}
+        
+        response = requests.post(webhook_thiago, json=payload)
+            
+        if response.status_code == 200:
+            
+            st.success(f"Mapas de Pagamento enviados com sucesso!")
+            
+        else:
+            
+            st.error(f"Erro. Favor contactar o suporte")
+
+            st.error(f"{response}")
