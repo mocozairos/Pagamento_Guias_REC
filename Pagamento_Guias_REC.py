@@ -290,6 +290,37 @@ def calculo_diarias_motoguias_trf(df_escalas_group):
 
     return df_escalas_group
 
+def retirar_passeios_repetidos(df_escalas_group):
+
+    df_escalas_passeios_repetidos = df_escalas_group[df_escalas_group['Tipo de Servico']=='TOUR'].groupby(['Data da Escala', 'Veículo', 'Motorista', 'Guia', 'Servico'])['Escala'].count().reset_index()
+
+    df_escalas_passeios_repetidos = df_escalas_passeios_repetidos[df_escalas_passeios_repetidos['Escala']>1].reset_index(drop=True)
+
+    for index in range(len(df_escalas_passeios_repetidos)):
+
+        data_da_escala = df_escalas_passeios_repetidos.at[index, 'Data da Escala']
+
+        veiculo_ref = df_escalas_passeios_repetidos.at[index, 'Veículo']
+
+        motorista_ref = df_escalas_passeios_repetidos.at[index, 'Motorista']
+
+        guia_referencia = df_escalas_passeios_repetidos.at[index, 'Guia']
+
+        servico_ref = df_escalas_passeios_repetidos.at[index, 'Servico']
+
+        df_ref = df_escalas_group[(df_escalas_group['Data da Escala']==data_da_escala) & (df_escalas_group['Veículo']==veiculo_ref) & (df_escalas_group['Motorista']==motorista_ref) & 
+                                  (df_escalas_group['Guia']==guia_referencia) & (df_escalas_group['Servico']==servico_ref)].reset_index()
+        
+        for index_2, index_principal in df_ref['index'].items():
+
+            if index_2>0:
+
+                df_escalas_group = df_escalas_group.drop(index=index_principal)
+        
+    df_escalas_group = df_escalas_group.reset_index(drop=True)
+
+    return df_escalas_group
+
 st.set_page_config(layout='wide')
 
 if not 'df_escalas' in st.session_state:
@@ -355,7 +386,7 @@ if gerar_mapa and data_inicial and data_final:
 
     df_escalas_group = calculo_diarias_motoguias_trf(df_escalas_group)
 
-
+    df_escalas_group = retirar_passeios_repetidos(df_escalas_group)
 
     df_escalas_group['Valor Final'] = df_escalas_group['Valor Final'] + df_escalas_group['Barco Carneiros']
 
