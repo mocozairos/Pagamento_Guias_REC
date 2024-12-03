@@ -68,7 +68,7 @@ def puxar_tarifarios():
 
     st.session_state.df_tarifario['Valor Idioma'] = pd.to_numeric(st.session_state.df_tarifario['Valor Idioma'], errors='coerce')
 
-def puxar_telefones():
+def puxar_aba_simples(id_gsheet, nome_aba, nome_df):
 
     nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
     credentials = service_account.Credentials.from_service_account_info(nome_credencial)
@@ -76,13 +76,13 @@ def puxar_telefones():
     credentials = credentials.with_scopes(scope)
     client = gspread.authorize(credentials)
 
-    spreadsheet = client.open_by_key('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE')
+    spreadsheet = client.open_by_key(id_gsheet)
     
-    sheet = spreadsheet.worksheet('Telefones Guias')
+    sheet = spreadsheet.worksheet(nome_aba)
 
     sheet_data = sheet.get_all_values()
 
-    st.session_state.df_telefones = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
+    st.session_state[nome_df] = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
 
 def puxar_programacao_passeios():
 
@@ -321,6 +321,26 @@ def retirar_passeios_repetidos(df_escalas_group):
 
     return df_escalas_group
 
+def precificar_extra_barco_carneiros(df_escalas_group):
+
+    df_escalas_group['Barco Carneiros'] = 0
+
+    lista_escalas_extra_barco = st.session_state.df_extra_barco['Escala'].unique().tolist()
+
+    df_escalas_group.loc[df_escalas_group['Escala'].isin(lista_escalas_extra_barco), 'Barco Carneiros'] = 50
+
+    return df_escalas_group
+
+def precificar_apenas_recepcao(df_escalas_group):
+
+    df_escalas_group['Apenas Recepcao'] = ''
+
+    lista_escalas_apenas_recepcao = st.session_state.df_apenas_recepcao['Escala'].unique().tolist()
+
+    df_escalas_group.loc[df_escalas_group['Escala'].isin(lista_escalas_apenas_recepcao), ['Apenas Recepcao', 'Valor Final']] = ['X', 56]
+
+    return df_escalas_group
+
 st.set_page_config(layout='wide')
 
 if not 'df_escalas' in st.session_state:
@@ -361,10 +381,14 @@ if gerar_mapa and data_inicial and data_final:
 
     puxar_programacao_passeios()
 
+    puxar_aba_simples('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', 'Extra Barco', 'df_extra_barco')
+
+    puxar_aba_simples('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', 'Apenas Recepção', 'df_apenas_recepcao')
+
     df_escalas = st.session_state.df_escalas[(st.session_state.df_escalas['Data da Escala'] >= data_inicial) & (st.session_state.df_escalas['Data da Escala'] <= data_final)].reset_index(drop=True)
 
     df_escalas_group = df_escalas.groupby(['Data da Escala', 'Escala', 'Veiculo', 'Motorista', 'Guia', 'Servico', 'Tipo de Servico', 'Modo'])\
-        .agg({'Apoio': 'first',  'Observacao': avaliar_observacao, 'Idioma': avaliar_idioma}).reset_index()
+        .agg({'Apoio': 'first',  'Idioma': avaliar_idioma}).reset_index()
 
     df_escalas_group = df_escalas_group.rename(columns=({'Observacao': 'Barco Carneiros', 'Veiculo': 'Veículo'}))
 
@@ -388,9 +412,14 @@ if gerar_mapa and data_inicial and data_final:
 
     df_escalas_group = retirar_passeios_repetidos(df_escalas_group)
 
+    df_escalas_group = precificar_extra_barco_carneiros(df_escalas_group)
+
+    df_escalas_group = precificar_apenas_recepcao(df_escalas_group)
+
     df_escalas_group['Valor Final'] = df_escalas_group['Valor Final'] + df_escalas_group['Barco Carneiros']
 
-    st.session_state.df_pag_final = df_escalas_group[['Data da Escala', 'Modo', 'Tipo de Servico', 'Servico', 'Veículo', 'Motorista', 'Guia', 'Motoguia', 'Idioma', 'Barco Carneiros', 'Valor Final']]
+    st.session_state.df_pag_final = df_escalas_group[['Data da Escala', 'Modo', 'Tipo de Servico', 'Servico', 'Veículo', 'Motorista', 'Guia', 'Motoguia', 'Idioma', 'Apenas Recepcao', 'Barco Carneiros', 
+                                                      'Valor Final']]
 
 if 'df_pag_final' in st.session_state:
 
@@ -469,7 +498,7 @@ if 'df_pag_final' in st.session_state:
 
             if enviar_informes:
 
-                puxar_telefones()
+                puxar_aba_simples('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', 'Telefones Guias', 'df_telefones')
 
                 lista_htmls = []
 
@@ -529,7 +558,7 @@ if 'html_content' in st.session_state and guia:
 
     if enviar_informes:
 
-        puxar_telefones()
+        puxar_aba_simples('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', 'Telefones Guias', 'df_telefones')
 
         telefone_guia = verificar_guia_sem_telefone('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', guia, st.session_state.df_telefones['Guias'].unique().tolist())
 
