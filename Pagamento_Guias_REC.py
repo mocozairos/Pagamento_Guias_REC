@@ -106,6 +106,30 @@ def puxar_programacao_passeios():
 
     st.session_state.df_programacao_passeios_espanhol['Data da Escala'] = st.session_state.df_programacao_passeios_espanhol['Data da Escala'].dt.date
 
+def puxar_apoios_box():
+
+    puxar_aba_simples('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', 'Apoios ao Box', 'df_apoios_box')
+
+    st.session_state.df_apoios_box['Data da Escala'] = pd.to_datetime(st.session_state.df_apoios_box['Data da Escala'], format='%d/%m/%Y')
+
+    st.session_state.df_apoios_box['Data da Escala'] = st.session_state.df_apoios_box['Data da Escala'].dt.date
+
+    st.session_state.df_apoios_box['Tipo de Apoio (H ou F)'] = st.session_state.df_apoios_box['Tipo de Apoio (H ou F)'].replace('F', 'APOIO AO BOX FULL')
+
+    st.session_state.df_apoios_box['Tipo de Apoio (H ou F)'] = st.session_state.df_apoios_box['Tipo de Apoio (H ou F)'].replace('H', 'APOIO AO BOX HALF')
+
+    st.session_state.df_apoios_box = st.session_state.df_apoios_box.rename(columns={'Tipo de Apoio (H ou F)': 'Servico'})
+
+    st.session_state.df_apoios_box[['Modo', 'Tipo de Servico', 'Veículo', 'Motorista', 'Motoguia', 'Idioma', 'Apenas Recepcao', 'Barco Carneiros', 'Valor Final']] = \
+        ['REGULAR', 'APOIO', '', '', '', '', '', 0, 0]
+
+    st.session_state.df_apoios_box.loc[st.session_state.df_apoios_box['Servico']=='APOIO AO BOX FULL', 'Valor Final'] = 162
+
+    st.session_state.df_apoios_box.loc[st.session_state.df_apoios_box['Servico']=='APOIO AO BOX HALF', 'Valor Final'] = 138
+
+    st.session_state.df_apoios_box = st.session_state.df_apoios_box[['Data da Escala', 'Modo', 'Tipo de Servico', 'Servico', 'Veículo', 'Motorista', 'Guia', 'Motoguia', 'Idioma', 'Apenas Recepcao', 
+                                                                     'Barco Carneiros', 'Valor Final']]
+
 def avaliar_observacao(observacoes):
 
     return 50 if 'barco_carneiros' in observacoes else 0
@@ -343,9 +367,11 @@ def precificar_apenas_recepcao(df_escalas_group):
 
 st.set_page_config(layout='wide')
 
-if not 'df_escalas' in st.session_state:
+with st.spinner('Puxando dados do Phoenix...'):
 
-    puxar_dados_phoenix()
+    if not 'df_escalas' in st.session_state:
+
+        puxar_dados_phoenix()
 
 st.title('Mapa de Pagamento - Guias')
 
@@ -385,6 +411,8 @@ if gerar_mapa and data_inicial and data_final:
 
     puxar_aba_simples('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', 'Apenas Recepção', 'df_apenas_recepcao')
 
+    puxar_apoios_box()
+
     df_escalas = st.session_state.df_escalas[(st.session_state.df_escalas['Data da Escala'] >= data_inicial) & (st.session_state.df_escalas['Data da Escala'] <= data_final)].reset_index(drop=True)
 
     df_escalas_group = df_escalas.groupby(['Data da Escala', 'Escala', 'Veiculo', 'Motorista', 'Guia', 'Servico', 'Tipo de Servico', 'Modo'])\
@@ -420,6 +448,8 @@ if gerar_mapa and data_inicial and data_final:
 
     st.session_state.df_pag_final = df_escalas_group[['Data da Escala', 'Modo', 'Tipo de Servico', 'Servico', 'Veículo', 'Motorista', 'Guia', 'Motoguia', 'Idioma', 'Apenas Recepcao', 'Barco Carneiros', 
                                                       'Valor Final']]
+
+    st.session_state.df_pag_final = pd.concat([st.session_state.df_pag_final, st.session_state.df_apoios_box], ignore_index=True)
 
 if 'df_pag_final' in st.session_state:
 
