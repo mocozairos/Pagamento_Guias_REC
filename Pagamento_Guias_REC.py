@@ -247,7 +247,7 @@ def filtrando_idiomas_passeios_programacao_espanhol(df_escalas_group):
 
         passeio_ref = df_escalas_saindo_de_porto_idioma.at[index, 'Servico']
 
-        lista_passeios_espanhol = st.session_state.df_programacao_passeios_espanhol.loc[st.session_state.df_programacao_passeios_espanhol['Data da Escala']==data_da_escala, 'Serviço']
+        lista_passeios_espanhol = st.session_state.df_programacao_passeios_espanhol.loc[st.session_state.df_programacao_passeios_espanhol['Data da Escala']==data_da_escala, 'Serviço'].iloc[0]
 
         if not (passeio_ref in lista_passeios_espanhol):
 
