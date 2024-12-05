@@ -415,6 +415,8 @@ if gerar_mapa and data_inicial and data_final:
 
     df_escalas = st.session_state.df_escalas[(st.session_state.df_escalas['Data da Escala'] >= data_inicial) & (st.session_state.df_escalas['Data da Escala'] <= data_final)].reset_index(drop=True)
 
+    df_escalas.loc[df_escalas['Adicional'].str.contains('GUIA BILINGUE', na=False), 'Idioma'] = 'en-us'
+    
     df_escalas_group = df_escalas.groupby(['Data da Escala', 'Escala', 'Veiculo', 'Motorista', 'Guia', 'Servico', 'Tipo de Servico', 'Modo'])\
         .agg({'Apoio': 'first',  'Idioma': avaliar_idioma}).reset_index()
 
