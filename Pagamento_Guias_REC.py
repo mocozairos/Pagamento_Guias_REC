@@ -365,6 +365,20 @@ def precificar_apenas_recepcao(df_escalas_group):
 
     return df_escalas_group
 
+def puxar_servicos_navio():
+
+    puxar_aba_simples('1RwFPP9nQttGztxicHeJGTG6UqoL7fPKCWSdhhEdRVhE', 'Serviço de Guia - Navio', 'df_servicos_navio')
+
+    st.session_state.df_servicos_navio['Data da Escala'] = pd.to_datetime(st.session_state.df_servicos_navio['Data da Escala'], format='%d/%m/%Y')
+
+    st.session_state.df_servicos_navio['Data da Escala'] = st.session_state.df_servicos_navio['Data da Escala'].dt.date
+
+    st.session_state.df_servicos_navio[['Modo', 'Tipo de Servico', 'Servico', 'Veículo', 'Motorista', 'Motoguia', 'Idioma', 'Apenas Recepcao', 'Barco Carneiros', 'Valor Final']] = \
+        ['REGULAR', 'TOUR', 'Serviço de Guia - Navio', '', '', '', '', '', 0, 194]
+
+    st.session_state.df_servicos_navio = st.session_state.df_servicos_navio[['Data da Escala', 'Modo', 'Tipo de Servico', 'Servico', 'Veículo', 'Motorista', 'Guia', 'Motoguia', 'Idioma', 
+                                                                             'Apenas Recepcao', 'Barco Carneiros', 'Valor Final']]
+
 st.set_page_config(layout='wide')
 
 with st.spinner('Puxando dados do Phoenix...'):
@@ -413,6 +427,8 @@ if gerar_mapa and data_inicial and data_final:
 
     puxar_apoios_box()
 
+    puxar_servicos_navio()
+
     df_escalas = st.session_state.df_escalas[(st.session_state.df_escalas['Data da Escala'] >= data_inicial) & (st.session_state.df_escalas['Data da Escala'] <= data_final)].reset_index(drop=True)
 
     df_escalas.loc[df_escalas['Adicional'].str.contains('GUIA BILINGUE', na=False), 'Idioma'] = 'en-us'
@@ -451,7 +467,7 @@ if gerar_mapa and data_inicial and data_final:
     st.session_state.df_pag_final = df_escalas_group[['Data da Escala', 'Modo', 'Tipo de Servico', 'Servico', 'Veículo', 'Motorista', 'Guia', 'Motoguia', 'Idioma', 'Apenas Recepcao', 'Barco Carneiros', 
                                                       'Valor Final']]
 
-    st.session_state.df_pag_final = pd.concat([st.session_state.df_pag_final, st.session_state.df_apoios_box], ignore_index=True)
+    st.session_state.df_pag_final = pd.concat([st.session_state.df_pag_final, st.session_state.df_apoios_box, st.session_state.df_servicos_navio], ignore_index=True)
 
 if 'df_pag_final' in st.session_state:
 
