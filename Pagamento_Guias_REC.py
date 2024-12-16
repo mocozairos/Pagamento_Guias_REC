@@ -374,7 +374,7 @@ def puxar_servicos_navio():
     st.session_state.df_servicos_navio['Data da Escala'] = st.session_state.df_servicos_navio['Data da Escala'].dt.date
 
     st.session_state.df_servicos_navio[['Modo', 'Tipo de Servico', 'Servico', 'Veículo', 'Motorista', 'Motoguia', 'Idioma', 'Apenas Recepcao', 'Barco Carneiros', 'Valor Final']] = \
-        ['REGULAR', 'TOUR', 'Serviço de Guia - Navio', '', '', '', '', '', 0, 194]
+        ['REGULAR', 'TOUR', 'Serviço de Guia - Navio', '', '', '', '', '', 0, 168]
 
     st.session_state.df_servicos_navio = st.session_state.df_servicos_navio[['Data da Escala', 'Modo', 'Tipo de Servico', 'Servico', 'Veículo', 'Motorista', 'Guia', 'Motoguia', 'Idioma', 
                                                                              'Apenas Recepcao', 'Barco Carneiros', 'Valor Final']]
